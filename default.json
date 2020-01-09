@@ -1,0 +1,16 @@
+{
+    "hdfs-base":"/user/hduser/freaking-project"
+    ,"test-root":"$hdfs-base"
+    ,"paths":{
+        "incoming":"$hdfs-base/incoming"
+        ,"processing":"$hdfs-base/processing"
+        ,"processed":"$hdfs-base/processed"
+        ,"rejected":"$hdfs-base/rejected"
+        ,"level2":{
+            "level3":{
+                "sbrebows":"$hdfs-base/sbrebows"
+            }
+        }
+        ,"test-sub":"$paths.incoming"
+    }
+}
