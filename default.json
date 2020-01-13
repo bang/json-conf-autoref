@@ -1,6 +1,7 @@
 {
     "hdfs-base":"/user/hduser/freaking-project"
     ,"test-root":"$hdfs-base"
+    ,"test-ref":"some-random-reference"
     ,"paths":{
         "incoming":"$hdfs-base/incoming"
         ,"processing":"$hdfs-base/processing"
@@ -10,6 +11,7 @@
             "level3":{
                 "sbrebows":"$hdfs-base/sbrebows"
             }
+        ,"test-more-variables":"$hdfs-base/$test-ref"
         }
         ,"test-sub":"$paths.incoming"
     }
