@@ -1,20 +1,14 @@
 {
-    "hdfs-user":"hduser"
-    ,"hdfs-base":"/usr/$hdfs-user/freaking-project"
-    ,"single-test":"crap"
-    ,"multi-var-single-values":"$hdfs-user$single-test"
-    ,"list-values":[1,2,3,"$hdfs-user"]
-    ,"paths":{
+    "project-name":"fantastic-project"
+    ,"hdfs-user":"john"
+    ,"hdfs-base":"/usr/$hdfs-user/$project-name"
+    ,"hdfs-paths":{
         "incoming":"$hdfs-base/incoming"
-        ,"level2":{
-            "level3":{
-                "level4":"some-level4-value"
-            }
-            ,"level3-list":["noref",1,2,"$hdfs-user"]
-
-        }
+        ,"processing":"$hdfs-base/processing"
+        ,"processed":"$hdfs-base/processed"
+        ,"rejected":"$hdfs-base/rejected"
     }
-    ,"ref-test":"$paths.incoming"
-    ,"depth-levels-test":"$paths.level2.level3.level4"
-
+    ,"multivar-ref":"$hdfs-paths.rejected$hdfs-user"
+    ,"no-ref-list":[1,2,3,"just a test"]
+    ,"ref-list":[1,2,3,"something","$hdfs-user","$hdfs-paths.incoming"]
 }

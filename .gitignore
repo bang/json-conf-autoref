@@ -1,2 +1,4 @@
 *.pyc
 __pycache__/
+dist/
+json_conf_autoref.egg-info/

@@ -95,8 +95,6 @@ def __traverse_json(json_input,path):
             --------------------------------
             Iterates the list and do the same thing in first scenario for each
             element of the list
-
-
         
     """
     if isinstance(json_input, dict):
@@ -134,11 +132,30 @@ def __check_result(data):
                 return True
     return ok
 
+
+def __get_from_path(data,path):
+    levels = re.split(r'\.',path)
+    if len(levels) == 0:
+        levels = [path]
+
+    value = None
+    key = re.sub('^\$','',levels[0])
+    value = data[key]
+    #print("VALUE: {}".format(str(value)))
+    if isinstance(value,list) or isinstance(value,dict):
+        levels.pop(0)
+        new_path = '.'.join(levels)
+        new_data = value
+        return __get_from_path(new_data,new_path)
+    else:
+        return value
+
+
 def __replace_vars_list(data,path,element_path,position):
     # Separating variables from the rest of the path
-    vars_to_replace = re.findall(r'(\$[\-\-A-Za-z\.]+[0-9]*)',str(element_path))
-    if len(vars_to_replace) == 0:
-        vars_to_replace = re.findall(r'(\$[\-\-A-Za-z\.]+[0-9].*?$)',str(element_path))
+    vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.]+[0-9]*)',str(element_path))
+    if len(vars_to_replace) == 0 :
+        vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.]+[0-9]*.*?$)',str(element_path))
 
     new_list = []
 
@@ -147,50 +164,45 @@ def __replace_vars_list(data,path,element_path,position):
     for part in path:
         transformed_path += "['{}']".format(part)
     temp_flag = False
+
+    # Just place the same value on the array(list) position
     if len(vars_to_replace) == 0:
         exec("data{}[{}] = element_path".format(str(transformed_path),str(position)))
 
     else:
         temp_flag = True
-
+        #print("WHERE: {}".format(str(element_path)))
         # Getting values for replacing
         for v in vars_to_replace:
+            # Removing stupid chars(and content after it) that could mess 
+            # the reference names.
+            # Don't know if this regex is enough yet. For now, this is it!
+            v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
+            #v = re.sub(r'.*?(\$.+?)$','',v)
 
-            # For variables that represents paths. Like "$pathLv1.pathLv2.pathLvN"
-            if re.search(r'\.',v):
-                value_path = re.split(r'\.',v)
-                var_path = ""
-                for part in value_path:
-                    prepared_part = re.sub(r'\$','',part)
-                    var_path += "['{}']".format(prepared_part)
-                
-                # Getting value for 'doted' variables
-                value = eval("data{}".format(var_path))
-
-            # For variables that is defined on root of config content
-            else:
-                # So, var is in the root path
-                key = re.sub(r'\$','',v)
-                value = data[key]
-
-            # Preparing 'v' for regex
-            v = re.sub(r'\$','\\\$',v)
-            new_value = re.sub(r''+ v, value, element_path)
-            
-            # updating value
-            element_path = value
-
-            # Replacing data
-            exec("data{}[{}] = new_value".format(str(transformed_path),str(position)))
+            value = __get_from_path(data,v)
+            what = re.sub(r'\$',"\\\$",v)
+            to = value 
+            where = element_path
+            exec("data{}[{}] = re.sub(r'{}','{}','{}')" \
+                .format(
+                        transformed_path
+                        ,position
+                        ,what
+                        ,to
+                        ,where
+                )
+            )
     return data
+
 
 
 def __replace_vars_single(data,path,element_path):
     # Separating variables from the rest of the path
-    vars_to_replace = re.findall(r'(\$[\-\-A-Za-z\.]+[0-9]*)',element_path)
-    if re.search(r'\.',element_path) :
-        vars_to_replace = re.findall(r'(\$[\-\-A-Za-z\.]+[0-9]*.*?$)',element_path)
-
+    vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.0-9]+[0-9]*)',str(element_path))
+    if len(vars_to_replace) == 0 :
+        vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.0-9]+[0-9]*.*?$)',str(element_path))
+    print("VARS_TO_REPLACE: {}".format(str(vars_to_replace)))
     # Transforming paths into a valid dictionary path
     transformed_path = ""
     for part in path:
@@ -200,23 +212,33 @@ def __replace_vars_single(data,path,element_path):
     for v in vars_to_replace:
         if v == '':
             continue
-
+        # Removing stupid chars(and content after it) that could mess 
+        # the reference names.
+        # Don't know if this regex is enough yet. For now, this is it!
+        v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
+        #v = re.sub(r'.*?(\$.+?)$',r'\1',v)
+        print("V: {}".format(str(v)))
         # For variables that represents paths. Like "$pathLv1.pathLv2.pathLvN"
         if re.search(r'\.',v):
             value_path = re.split(r'\.',v)
             var_path = ""
             #print("VALUE_PATH: {}".format(str(value_path)))
             for part in value_path:
+                # Ignoring crap. XHG
+#                part = re.sub("[\,\ \:]+.+?$",'',str(part))
+                # Preparing var
                 prepared_part = re.sub(r'^\$','',part)
                 var_path += "['{}']".format(prepared_part)
+
             # Getting value for 'doted' variables
-            #print("VAR_PATH: {}".format(str(var_path)))
+            print("VAR_PATH: {}".format(var_path))
             value = eval("data{}".format(var_path))
 
         # For variables that is defined on root of config content
         else:
             # So, var is in the root path
             key = re.sub(r'\$','',v)
+            print("KEY: {}".format(key))
             value = data[key]
 
         # Preparing 'v' for regex
@@ -246,37 +268,6 @@ def __replace_vars_factory(data,path,element_path,type):
         raise InvalidParam("type must be 'list' or 'single'!")
 
     return data
-
-
-def __get_from_json(data,json_path,varname):
-    noref_var = re.sub(r'^\$','',varname)
-    json_var_value = ''
-    target = ''
-    # Checking if variable reference is from another path
-    if re.search(r'\.',noref_var):
-        var_doted_path = re.split('\.',noref_var)
-        var_path = ""
-        
-        for p in var_doted_path:
-            var_path += "['{}']".format(p)
-        
-        # Getting the value of the variable
-        prepared_var = re.sub(r'\$',"\\\$",varname)
-        what = r'' + prepared_var
-        to = eval("data{}".format(var_path))
-        target = eval("data{}".format(var_path))
-
-    else:
-        var_path = "['{}']".format(noref_var)
-        # Getting the value of the variable
-        prepared_var = re.sub(r'\$',"\\\$",varname)
-        what = r'' + prepared_var
-        to = eval("data['{}']".format(noref_var))
-        target = eval("data{}".format(json_path))
-
-    json_var_value = eval("re.sub(what,to,target)")
-    return json_var_value
-
 
 
 
@@ -350,6 +341,25 @@ def process(json_string=None,file=None):
     return data
 
 
+def get(data,path):
+    data_from_path = {}
+
+    if not data:
+        raise invalidParam("'data' param is invalid!")
+
+    if not path:
+        raise PathNotDefined("Path is invalid! Expecting something like 'some-key.level1.level2 ... .levelN'")
+
+    elif re.search(r'\.',path):
+        levels = split(r'\.',path)
+        keys = ''
+        for level in levels:
+            keys += "['{}']".format(str(level))
+        data_from_path = eval("data{}".format(key))
+    else:
+        data_from_path = data[path]
+
+    return data_from_path
 
 def main():
 
