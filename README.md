@@ -330,6 +330,28 @@ Again, you can't use reference to point to a substructure(a list), just to singl
 
 
 
+**This will crash!**
+
+```json
+    {
+        "key1":"test1"
+        ,"key2":"test2"
+        ,"key3":{
+            "level1":{
+                "level2":{
+                    "level2-list":["$key1$key2","$key3.level1.level2.value"]
+                    ,value="some value"
+                }
+            ,"level1-value":"This is level1"
+            }
+        }
+    }
+```
+
+The *dot-path* is not working on lists yet.
+
+
+
 
 
 ### Accessing data
@@ -397,3 +419,4 @@ Please, report another bugs to andregarciacarneiro@gmail.com
 ## Author
 
 André Garcia Carneiro - andregarciacarneiro@gmail.com
+
