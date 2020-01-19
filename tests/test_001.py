@@ -97,13 +97,11 @@ def test_list_no_vars():
         ,"key3":"works fine"
     }"""
     conf = jc.process(json_string=js_string)
-    print(str(conf['key1']))
-    assert str(conf['key1'][0]) == "1"
-    assert str(conf['key1'][1]) == "2"
-    assert str(conf['key1'][2]) == "3"
-    assert str(conf['key1'][3]) == "works"
-
-
+    if str(conf['key1'][0]) == "1" and \
+        str(conf['key1'][1]) == "2" and \
+        str(conf['key1'][2]) == "3" and \
+        str(conf['key1'][3]) == "works":
+        assert True
 
 
 def test_list_sub_no_vars():
@@ -189,7 +187,6 @@ def test_list_concat_vars():
     }"""
     conf = jc.process(json_string=js_string)
     assert conf['key3'][0] == "test1test2"
-
 
 
 def test_list_concat_deep_vars():

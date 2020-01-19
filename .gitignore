@@ -3,3 +3,5 @@ __pycache__/
 dist/
 json_conf_autoref.egg-info/
 build/
+eggs/
+.eggs/

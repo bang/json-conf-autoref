@@ -3,7 +3,8 @@ setup(
     name="json_conf_autoref",
     version="0.0.4",
     packages=find_packages(),
-    scripts=["start_tests.py"],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 
     # metadata to display on PyPI
     author="Andre Carneiro",
@@ -19,7 +20,7 @@ setup(
     classifiers=[
         "License :: OSI Approved :: Python Software Foundation License"
     ],
-    test_suite='tests'
+    
 
     # could also include long_description, download_url, etc.
 )
