@@ -5,7 +5,7 @@ Manipulate JSON config files with internal variables
 
 ## VERSION
 
-0.0.4 - unstable
+0.0.5-rc1
 
 
 
@@ -23,27 +23,56 @@ This module takes advantage from JSON that have a data strucutre similar to Pyth
 
 
 
+## Requirements
 
+Python3
 
-## Install
-
-
-
-### Git
-
-`git clone https://github.com/bang/json-conf-autoref.git json_conf_autoref`
+pip
 
 
 
-### Pip
+## Installing
 
-Tests and documentation are not finished yet! So, nope!
+
+
+### Git way
+
+`git clone https://github.com/bang/json-conf-autoref.git`
+
+
+then
+
+`$ cd json-conf-autoref && python -m pip install -r requirements.txt`
+
+then
+
+`$ python setup.py pytest`
+
+**If all it's ok**, then
+
+`$ python setup.py install`
+
+done!
+
+
+
+### pip way
+
+`python -mpip install json_config_autoref`
+
+or
+
+`python -mpip install json_config_autoref --user`
+
+
 
 
 
 ## HOW TO USE
 
-Simple example:
+
+
+#### Create a JSON file. I called this one at bellow 'default.json':
 
 ```json
 {
@@ -56,13 +85,13 @@ Simple example:
 
 
 
-### Loading config data
+### Loading configuration data with `json_conf_autoref` module
 
 ```python
-import json-conf-autoref
+import json_conf_autoref
 
 # Loading from file
-conf = process(file='default.conf')
+conf = process(file='default.json')
 
 # Showing config with all references replaced
 show(conf)
@@ -113,7 +142,7 @@ You can use another references mixing in simple values. In this case, the key "i
 Now, loading the data from file with the same code as the example before
 
 ```python
-import json-conf-autoref
+import json_conf_autoref
 
 # Loading from file
 conf = process(file='default.conf')

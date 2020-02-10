@@ -1,10 +1,11 @@
 from setuptools import setup, find_packages
 setup(
     name="json_conf_autoref",
-    version="0.0.4",
+    version="0.0.5",
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    py_modules=['json_conf_autoref','exceptions'],
 
     # metadata to display on PyPI
     author="Andre Carneiro",
