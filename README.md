@@ -88,13 +88,13 @@ or
 ### Loading configuration data with `json_conf_autoref` module
 
 ```python
-import json_conf_autoref
+import json_conf_autoref as jca
 
 # Loading from file
-conf = process(file='default.json')
+conf = jca.process(file='default.json')
 
 # Showing config with all references replaced
-show(conf)
+jca.show(conf)
    
 ```
 
@@ -142,13 +142,13 @@ You can use another references mixing in simple values. In this case, the key "i
 Now, loading the data from file with the same code as the example before
 
 ```python
-import json_conf_autoref
+import json_conf_autoref as jca
 
 # Loading from file
-conf = process(file='default.conf')
+conf = jca.process(file='default.json')
 
 # Showing all vars from conf
-show(conf)
+jca.show(conf)
 ```
 
 
