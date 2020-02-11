@@ -3,7 +3,7 @@
 
     Version
     -------
-    0.0.5
+    0.0.6
 
     Description
     -----------
@@ -76,7 +76,7 @@ import json
 import sys,os,re
 from exceptions import *
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 
 __author__ = "André Carneiro"
@@ -257,7 +257,8 @@ def __replace_vars_list(data,path,element_path,position):
             what = re.sub(r'\$',"\\\$",v)
             to = value 
             where = element_path
-            exec("data{}[{}] = re.sub(r'{}','{}','{}')" \
+
+            exec("data{}[{}] = re.sub(r'{}',\'{}\',\"{}\")" \
                 .format(
                         transformed_path
                         ,position
