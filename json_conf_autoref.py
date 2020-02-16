@@ -3,7 +3,7 @@
 
     Version
     -------
-    0.0.6
+    0.0.7
 
     Description
     -----------
@@ -76,7 +76,7 @@ import json
 import sys,os,re
 from exceptions import *
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 
 __author__ = "André Carneiro"
@@ -243,7 +243,6 @@ def __replace_vars_list(data,path,element_path,position):
         exec("data{}[{}] = element_path".format(str(transformed_path),str(position)))
 
     else:
-        #temp_flag = True
         
         # Getting values for replacing
         for v in vars_to_replace:
@@ -257,7 +256,8 @@ def __replace_vars_list(data,path,element_path,position):
             what = re.sub(r'\$',"\\\$",v)
             to = value 
             where = element_path
-
+  
+            
             exec("data{}[{}] = re.sub(r'{}',\'{}\',\"{}\")" \
                 .format(
                         transformed_path
@@ -267,6 +267,15 @@ def __replace_vars_list(data,path,element_path,position):
                         ,where
                 )
             )
+
+            # Transform json_string to Python data structure
+            string_data = eval("data{}[{}]".format(transformed_path,position))
+            string_data = re.sub(r"\'",'"',string_data)
+            string_data = re.sub(r"True",'true',string_data)
+            string_data = re.sub(r"False",'false',string_data)
+            json_data = json.loads(string_data)
+            exec('data{}[{}] = json_data'.format(str(transformed_path) , position ))
+            
     return data
 
 
@@ -311,6 +320,7 @@ def __replace_vars_single(data,path,element_path):
         # Don't know if this regex is enough yet. For now, this is it!
         v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
         # For variables that represents paths. Like "$pathLv1.pathLv2.pathLvN"
+        key = value = ''
         if re.search(r'\.',v):
             value_path = re.split(r'\.',v)
             var_path = ""
@@ -341,6 +351,7 @@ def __replace_vars_single(data,path,element_path):
         # Finally replacing values in data
         exec("data{} = replacement".format(transformed_path))
 
+        
     return data
 
 
