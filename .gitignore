@@ -7,3 +7,5 @@ eggs/
 .eggs/
 *.swp
 test.*
+config.json
+venv/

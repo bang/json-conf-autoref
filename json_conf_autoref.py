@@ -8,9 +8,9 @@
     Description
     -----------
 
-    This module is a config parser that works with JSON format. Content can come 
-    from a JSON file or string. The module accepts variable definition inside the 
-    JSON data just adding '$' character to refere to any key that exists inside 
+    This module is a config parser that works with JSON format. Content can come
+    from a JSON file or string. The module accepts variable definition inside the
+    JSON data just adding '$' character to refere to any key that exists inside
     the JSON content.
 
     Examples
@@ -27,7 +27,7 @@
     import json_conf_autoref as jca
 
     conf = jca.process(file="conf/default.json")
-    jca.show(conf) 
+    jca.show(conf)
 
     Shows
 
@@ -38,7 +38,7 @@
 
     # From a JSON string
 
-    my_json = '{"hdfs-user":"some_cool_guy","hdfs-base":"hdfs://yourcompany.com/user/$hdfs-user/fantastic-project"}
+    my_json = '{"hdfs-user":"some_cool_guy","hdfs-base":"hdfs://yourcompany.com/user/${hdfs-user}/fantastic-project"}
 
     conf = jca.process(json_string = my_json)
 
@@ -51,11 +51,17 @@
         "hdfs-user": "some_cool_guy"
     }
 
+    # Vars
+    {
+        "project-name":"fantastic-project"
+        "hdfs-base": "hdfs://yourcompany.com/user/some_cool_guy/${project-name}",
+        "hdfs-user": "some_cool_guy"
+    }
 
     # Vars inside lists(EXPERIMENTAL)
 
-    my_json = '{"hdfs-user":"joe", "system-users":["$hdfs-user","mary","lucca"] }'
-    
+    my_json = '{"hdfs-user":"joe", "system-users":["${hdfs-user}","mary","lucca"] }'
+
     conf = jca.process(json_string = my_json)
 
     jca.show(conf)
@@ -64,6 +70,7 @@
     Shows
 
     '{"hdfs-user":"joe", "system-users":["joe","mary","lucca"] }'
+
 
     Limitations
     -----------
@@ -84,7 +91,7 @@ __author__ = "André Carneiro"
 
 def __traverse_json(json_input,path):
     """A internal recursive function that goes through JSON hierarchical structure
-    looking for variables inside values using regular expression and yields 
+    looking for variables inside values using regular expression and yields
     a list of variables that it's found.
 
         Parameters
@@ -101,27 +108,27 @@ def __traverse_json(json_input,path):
 
             First scenario - Not-list structure
             -----------------------------------
-            A new recursive call to function passing the current path if value in some 
+            A new recursive call to function passing the current path if value in some
             point of structure not satisfies the requirements to replace variables to
             values
 
             or
 
-            A key-value pair dictionary with 
+            A key-value pair dictionary with
 
             Second scenario - list structure
             --------------------------------
             Iterates the list and do the same thing in first scenario for each
             element of the list
-        
+
     """
     if isinstance(json_input, dict):
         for k, v in json_input.items():
             # Divides the structure keys with '/'. Familiar, huh?
-            if isinstance(v,str) and re.search(r'^.*?(\$.+?)$',v):
+            if isinstance(v,str) and re.search(r'^.*?(\${.+?}).*?$',v):
                 yield { '/'.join([path , k]) : v }
             else:
-                # yields a new recursive call for __traverse passing 
+                # yields a new recursive call for __traverse passing
                 # the current value and current path level
                 yield from __traverse_json(v, '/'.join([path , k]))
     elif isinstance(json_input, list):
@@ -139,9 +146,9 @@ def __check_result(data):
 
         Returns
         -------
-        False 
+        False
             If there is variables not replaced by their respective values.
-        
+
         True
             Otherwise
 
@@ -158,9 +165,9 @@ def __check_result(data):
         for k,v in l.items():
             if isinstance(v,list):
                 for i in v:
-                    if re.search(r'\$',str(i)):
+                    if re.search(r'\${.+?}*',str(i)):
                         return False
-            elif re.search(r'\$',str(v)):
+            elif re.search(r'\${.+?}*',str(v)):
                 return False
             else:
                 return True
@@ -190,9 +197,9 @@ def __get_from_path(data,path):
         levels = [path]
 
     value = None
-    key = re.sub('^\$','',levels[0])
+    key = re.sub(r'^\${','',levels[0])
+    key = re.sub(r'}','',key)
     value = data[key]
-    #print("VALUE: {}".format(str(value)))
     if isinstance(value,list) or isinstance(value,dict):
         levels.pop(0)
         new_path = '.'.join(levels)
@@ -203,7 +210,7 @@ def __get_from_path(data,path):
 
 
 def __replace_vars_list(data,path,element_path,position):
-    """Replace vars under single values(strings and numbers for example). 
+    """Replace vars under single values(strings and numbers for example).
 
         Parameters
         ----------
@@ -219,17 +226,14 @@ def __replace_vars_list(data,path,element_path,position):
         position : int
             The position in the list that is beeing analyzed
 
-        
+
         Returns
         -------
         A dictionary with the processing result
     """
 
     # Separating variables from the rest of the path
-    vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.]+[0-9]*)',str(element_path))
-    if len(vars_to_replace) == 0 :
-        vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.]+[0-9]*.*?$)',str(element_path))
-
+    vars_to_replace = re.findall(r'(\${.+?})',str(element_path))
     new_list = []
 
     # Transforming paths into a valid dictionary path
@@ -243,10 +247,10 @@ def __replace_vars_list(data,path,element_path,position):
         exec("data{}[{}] = element_path".format(str(transformed_path),str(position)))
 
     else:
-        
+
         # Getting values for replacing
         for v in vars_to_replace:
-            # Removing stupid chars(and content after it) that could mess 
+            # Removing stupid chars(and content after it) that could mess
             # the reference names.
             # Don't know if this regex is enough yet. For now, this is it!
             v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
@@ -254,33 +258,15 @@ def __replace_vars_list(data,path,element_path,position):
 
             value = __get_from_path(data,v)
             what = re.sub(r'\$',"\\\$",v)
-            to = value 
+            to = value
             where = element_path
-  
-            
-            exec("data{}[{}] = re.sub(r'{}',\'{}\',\"{}\")" \
-                .format(
-                        transformed_path
-                        ,position
-                        ,what
-                        ,to
-                        ,where
-                )
-            )
-
-            # Transform json_string to Python data structure
-            string_data = eval("data{}[{}]".format(transformed_path,position))
-            string_data = re.sub(r"\'",'"',string_data)
-            string_data = re.sub(r"True",'true',string_data)
-            string_data = re.sub(r"False",'false',string_data)
-            json_data = json.loads(string_data)
-            exec('data{}[{}] = json_data'.format(str(transformed_path) , position ))
-            
+            cmd = f"data{transformed_path}[{position}] = re.sub(r'{what}',\'{to}\',\"{where}\")"
+            exec(cmd)
     return data
 
 
 def __replace_vars_single(data,path,element_path):
-    """Replace vars under single values(strings and numbers for example). 
+    """Replace vars under single values(strings and numbers for example).
 
         Parameters
         ----------
@@ -293,18 +279,16 @@ def __replace_vars_single(data,path,element_path):
         element_path : str
             The full path element string of JSON structure
 
-        
+
         Returns
         -------
         A dictionary with the processing result
 
-        
+
 
     """
     # Separating variables from the rest of the path
-    vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.0-9]+[0-9]*)',str(element_path))
-    if len(vars_to_replace) == 0 :
-        vars_to_replace = re.findall(r'(\$[\-\_A-Za-z\.0-9]+[0-9]*.*?$)',str(element_path))
+    vars_to_replace = re.findall(r'(\$\{.+?\})',str(element_path))
 
     # Transforming paths into a valid dictionary path
     transformed_path = ""
@@ -315,7 +299,7 @@ def __replace_vars_single(data,path,element_path):
     for v in vars_to_replace:
         if v == '':
             continue
-        # Removing stupid chars(and content after it) that could mess 
+        # Removing stupid chars(and content after it) that could mess
         # the reference names.
         # Don't know if this regex is enough yet. For now, this is it!
         v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
@@ -327,7 +311,8 @@ def __replace_vars_single(data,path,element_path):
 
             for part in value_path:
                 # Preparing var
-                prepared_part = re.sub(r'^\$','',part)
+                prepared_part = re.sub(r'^\${','',part)
+                prepared_part = re.sub(r'}$','',prepared_part)
                 var_path += "['{}']".format(prepared_part)
 
             # Getting value for 'doted' variables
@@ -336,22 +321,23 @@ def __replace_vars_single(data,path,element_path):
         # For variables that is defined on root of config content
         else:
             # So, var is in the root path
-            key = re.sub(r'\$','',v)
+            key = re.sub(r'\${','',v)
+            key = re.sub(r'}','',key)
             value = data[key]
 
         # Preparing 'v' for regex
-        v = re.sub(r'\$','\\\$',v)
+        v = re.sub(r'\$', '\\\$',v)
 
         # Storing regex replacement result
         replacement = eval("re.sub(r''+ v, value, element_path)")
-        
+
         # updating element_path with regex replacement result
         element_path = replacement
 
         # Finally replacing values in data
         exec("data{} = replacement".format(transformed_path))
 
-        
+
     return data
 
 
@@ -379,12 +365,12 @@ def __replace_vars_factory(data,path,element_path,type):
         type : str
             The type of vars replacing. Must be 'single' or 'list'
 
-        
+
         Returns
         -------
         A dictionary with the processing result
 
-        
+
         Exceptions
         ----------
         InvalidParam
@@ -416,7 +402,7 @@ def __analyze(data):
         data : dictionary
         JSON structure transcripted to a dictionary
 
-        
+
         Returns
         -------
         A dictionary with the processing results
@@ -427,7 +413,6 @@ def __analyze(data):
     lookups = []
     for _ in __traverse_json(data,''):
         lookups.append(_);
-
     for l in lookups:
         for rawPath,lookup in l.items():
             Items = re.split(r'/',rawPath)
@@ -448,7 +433,6 @@ def __analyze(data):
                 data = __replace_vars_factory(data,path,element_path,'list')
             else:
                 data = __replace_vars_factory(data,path,element_path,'single')
-
 
     return data
 
@@ -487,7 +471,7 @@ def process(json_string=None,file=None):
 
         file : str or None
 
-        
+
         Returns
         -------
         A dictionary with processed config data
@@ -495,7 +479,7 @@ def process(json_string=None,file=None):
 
         Exceptions
         ----------
-        
+
         ValueError
             When JSON reading fails.
 
@@ -544,3 +528,7 @@ def process(json_string=None,file=None):
 if __name__ == '__main__':
     pass
 
+
+class LimitException(Exception):
+    def __init__(self,*args,**kwargs):
+        Exception.__init__(self,*args,**kwargs)

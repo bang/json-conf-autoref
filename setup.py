@@ -22,7 +22,7 @@ setup(
     classifiers=[
         "License :: OSI Approved :: Python Software Foundation License"
     ],
-    
+
 
     # could also include long_description, download_url, etc.
 )

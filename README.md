@@ -5,27 +5,50 @@ Manipulate JSON config files with internal variables
 
 ## VERSION
 
-0.0.6-rc1
+0.0.7-rc1
 
 
 
 ## Intro
 
-This module takes advantage from JSON that have a data strucutre similar to Python as a usual json file except that accept variable references inside the structure **under the following rules:**
+This module takes advantage from JSON that have a data strucutre similar to Python as a usual json file except that is allowed to create **variables** and refer to this variables in any part of the JSON file, following the rules at bellow:
 
+* Variables reference example: `"${name_of_some_variable}"`;
 
+* Variables **must** be referenced inside a string;
 
-1. All references must be within **strings**;
-2. The reference is **always** to a **key, dot-path or another existent reference**;
-3. The character used to build references to a key is **'$'**;
-4. References must **always**  "point" to simple values( strings, numbers etc) and never other structures( common lists or indexed lists knowing in Python as dictionaries ) or just another reference(Ex: $some-reference);
-5. You can use more than one reference in the same string folowing the rules above
+* Variable is **always** a reference to a **simple value**! **Never** neasted structures or lists!;
+
+* You can concatenate variables
+
+  Ex.: `"some_external_value${variable1}${variable2}"`;
+  
+* Variables inside arrays is EXPERIMENTAL
+
+  ```json
+  "my_array":[1,2,"${some_variable}","abc",3.2]
+  ```
+
+* You can use dots '.' to refer to a sublevels inside JSON data:
+
+  ```
+  {
+  	"level1":{
+  		"level2":{
+  			"level3":"some-value"
+  		}
+  	},
+  	"another-var":"${level1.level2.level3}"
+  }
+  ```
+
+* You **can't** use variables on keys
 
 
 
 ## Requirements
 
-Python3
+Python3.6 or superior
 
 pip
 
@@ -78,7 +101,7 @@ or
 {
     "project-name":"fantastic-project"
     ,"hdfs-user":"john"
-    ,"hdfs-base":"/usr/$hdfs-user/$project-name"
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
   
 }
 ```
@@ -122,12 +145,12 @@ Now, let's complicate the *default.json* file a little bit, using reference to a
 {
     "project-name":"fantastic-project"
     ,"hdfs-user":"john"
-    ,"hdfs-base":"/usr/$hdfs-user/$project-name"
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
     ,"hdfs-paths":{
-        "incoming":"$hdfs-base/incoming"
-        ,"processing":"$hdfs-base/processing"
-        ,"processed":"$hdfs-base/processed"
-        ,"rejected":"$hdfs-base/rejected"
+        "incoming":"${hdfs-base}/incoming"
+        ,"processing":"${hdfs-base}/processing"
+        ,"processed":"${hdfs-base}/processed"
+        ,"rejected":"${hdfs-base}/rejected"
     }
     
 }
@@ -180,13 +203,11 @@ Result
         "path1":"/first/path"
         ,"path2":"/second/path"
     }
-    ,"refer-test":$paths
+    ,"refer-test":${paths}
 }
 ```
 
-This crashes because breaks the fourth rule defined on *Intro* section: '*References must **always**  "point" to simple values( strings, numbers etc) and never other structures( common lists or indexed lists knowing in Python as dictionaries ) or just another reference(Ex: $some-reference)*'
-
-
+This crashes because breaks the rules defined on *Intro* section
 
 Since the reference `$paths` doesn't points to a simple value but to an sub-structure, this can't be used as a reference. So, crashes!
 
@@ -194,11 +215,9 @@ Since the reference `$paths` doesn't points to a simple value but to an sub-stru
 
 
 
-### Multiple references levels(dot-paths)
+### Multiple-level references (dot-paths)
 
 References by *dot-paths* is a reference to **existent paths** where any hirerchycal level division is represented by a dot char '.'. Ex:
-
-
 
 Considering the same config file
 
@@ -206,37 +225,33 @@ Considering the same config file
 {
     "project-name":"fantastic-project"
     ,"hdfs-user":"john"
-    ,"hdfs-base":"/usr/$hdfs-user/$project-name"
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
     ,"hdfs-paths":{
-        "incoming":"$hdfs-base/incoming"
-        ,"processing":"$hdfs-base/processing"
-        ,"processed":"$hdfs-base/processed"
-        ,"rejected":"$hdfs-base/rejected"
+        "incoming":"${hdfs-base}/incoming"
+        ,"processing":"${hdfs-base}/processing"
+        ,"processed":"${hdfs-base}/processed"
+        ,"rejected":"${hdfs-base}/rejected"
     }
     
 }
 ```
 
+How to refer to 'incoming' key ? You can acess multiple levels of the structure using dots for each deep level you want to reach.
 
-
-How to refer to 'incoming' key ? You can acess multiple levels as reference using a simple(and not new) concept that I simply decided to name as ***dot-paths***. As the name is suggesting, a *dot-path* is a path whose levels are marked/identified separating each path level using dots. Ex: If you want access the "incoming" key, the *dot-path* for this is `$hdfs-paths.incoming`.
-
-
-
-Referencing "incoming" key in a new key called `dot-path-example`
+Example: Consider a JSON structure at bellow. Now, suppose to use a variable called "dot-path-example" that is on first level of this structure and value to reach is 'incoming', at bellow of 'hdfs-paths'. This is possible to access using dots like this: `"${hdfs-paths.incoming}"`
 
 ```json
 {
     "project-name":"fantastic-project"
     ,"hdfs-user":"john"
-    ,"hdfs-base":"/usr/$hdfs-user/$project-name"
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
     ,"hdfs-paths":{
-        "incoming":"$hdfs-base/incoming"
-        ,"processing":"$hdfs-base/processing"
-        ,"processed":"$hdfs-base/processed"
-        ,"rejected":"$hdfs-base/rejected"
-    }
- 	,dot-path-example:$hdfs-paths.incoming   
+        "incoming":"${hdfs-base}/incoming"
+        ,"processing":"${hdfs-base}/processing"
+        ,"processed":"${hdfs-base}/processed"
+        ,"rejected":"${hdfs-base}/rejected"
+    },
+ 	"dot-path-example":"${hdfs-paths.incoming}"   
 }
 ```
 
@@ -259,32 +274,18 @@ The loading code is the same as before. Showing the result:
 }
 ```
 
-
-
 As you can see, "dot-path-example" has exactly value as "hdfs-paths.incoming" key has. 
 
 
 
-Indirect references over *dot-path* **is not allowed**! 
+### Variables inside JSON arrays(experimental) 
 
-**This reference will not work**
-
-```
-"doesnt-work":"$hdfs-base.incoming"
-```
-
-
-
-
-
-### Lists(experimental) 
-
-Simple list example:
+Simple array example:
 
 ```json
 {
     "some-key-reference":"some-value"
-	,"the-list":[1,2,3,"yeah","$some-key-reference"]
+	,"the-list":[1,2,3,"yeah","${some-key-reference}"]
 }
 ```
 
@@ -317,7 +318,7 @@ List on deep level:
 	,"levels":{
         "level1":{
             "level2":{
-                "level3":["something","$some-key-reference"]
+                "level3":["something","${some-key-reference}"]
             }
         }
 	}
@@ -351,41 +352,15 @@ Result:
 ```
 {
     "my-list":[1,2,3,"bla"]
-    "ref-test":"$my-list"
+    "ref-test":"${my-list}"
 }
 ```
 
-Again, you can't use reference to point to a substructure(a list), just to single values.
-
-
-
-**This will crash!**
-
-```json
-    {
-        "key1":"test1"
-        ,"key2":"test2"
-        ,"key3":{
-            "level1":{
-                "level2":{
-                    "level2-list":["$key1$key2","$key3.level1.level2.value"]
-                    ,value="some value"
-                }
-            ,"level1-value":"This is level1"
-            }
-        }
-    }
-```
-
-The *dot-path* is not working on lists yet.
-
-
+Again, you can't use reference to point to a substructure(a list), just to simple values.
 
 
 
 ### Accessing data
-
-
 
 Consider the our old and good 'default.json' file
 
@@ -393,12 +368,12 @@ Consider the our old and good 'default.json' file
 {
     "project-name":"fantastic-project"
     ,"hdfs-user":"john"
-    ,"hdfs-base":"/usr/$hdfs-user/$project-name"
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
     ,"hdfs-paths":{
-        "incoming":"$hdfs-base/incoming"
-        ,"processing":"$hdfs-base/processing"
-        ,"processed":"$hdfs-base/processed"
-        ,"rejected":"$hdfs-base/rejected"
+        "incoming":"${hdfs-base}/incoming"
+        ,"processing":"${hdfs-base}/processing"
+        ,"processed":"${hdfs-base}/processed"
+        ,"rejected":"${hdfs-base}/rejected"
     }
     
 }
@@ -406,18 +381,20 @@ Consider the our old and good 'default.json' file
 
 
 
-To access data is just do with any Python data structure.
+The `process` function returns alays a `dict` object. So, just use the keys on dictionary!
 
 ```Python
 # Using common dictionary acess 
-hdfs_user = conf['hdfs-paths']['incoming'] # takes 'john' 
-
-
+hdfs_user = conf['hdfs-paths']['incoming'] # takes '/usr/john/fantastic-project/incoming' 
 ```
 
 
 
-### Setting values
+## Limitations
+
+
+
+### Setting values on JSON
 
 Not supported 
 
@@ -425,23 +402,33 @@ Not supported
 
 ### Accessing list position values for references
 
-Ex: Reference beeing something like `$some-list.3` - to try to access position 3, considering that it's a single value.
-
-
+Ex: Reference beeing something like `${some-list.3}` - to try to access position 3, considering that it's a single value.
 
 Not supported yet
 
 
 
+### Environment variables
+
+Not supported yet
+
+
+
+## Notes for this version
+
+* Change in the way to refer to a variable. Before was just `$variabel`. Now is `${variable}`. 
+
+  And that is replicated to 'dot-paths' and variables inside lists(arrays).
+
+* List variables(arrays) access is better, but is still EXPERIMENTAL
+
+* List access bugs fixed
+
 
 
 ## Bugs
 
-
-
-Please, report another bugs to andregarciacarneiro@gmail.com
-
-
+https://github.com/bang/json-conf-autoref/issues
 
 
 

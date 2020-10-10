@@ -33,7 +33,7 @@ def test_simple_var_concatenation():
     {
         "key1":"works"
         ,"key2":"works too"
-        ,"key3":"$key1$key2"
+        ,"key3":"${key1}${key2}"
     }"""
     conf = jc.process(json_string=js_string)
     assert conf['key3'] == "worksworks too"
@@ -51,7 +51,7 @@ def test_hirerarchy_no_vars_on_values():
                     "level2-var":"you're on level 2"
                 }
             }
-            ,"level2-var-reference":"$levels.level1.level2-var"
+            ,"level2-var-reference":"${levels.level1.level2-var}"
         }"""
 
         conf = jc.process(json_string=js_string)
@@ -65,7 +65,7 @@ def test_hierarchycal_var_concatenation():
         ,"key2":"works too"
         ,"levels":{
             "level1":{
-                "concat":"$key1$key2"
+                "concat":"${key1}${key2}"
             }
         }
     }"""
@@ -81,7 +81,7 @@ def test_hierarchycal_var_and_chars_concatenation():
         ,"key3":"works fine"
         ,"levels":{
             "level1":{
-                "concat":"$key1/$key2#$key3:33"
+                "concat":"${key1}/${key2}#${key3}:33"
             }
         }
     }"""
@@ -124,7 +124,7 @@ def test_list_vars():
     js_string = """
     {
         "key1":"something"
-        ,"key2":[1,2,3,"$key1"]
+        ,"key2":[1,2,3,"${key1}"]
     }"""
     conf = jc.process(json_string=js_string)
     print(str(conf['key2']))
@@ -137,10 +137,10 @@ def test_list_sub_with_vars():
         "key1":{
             "key2":[1,2,3,"works"]
             ,"key3":{
-                "key4":[4,5,6,"$var_to_list"]
+                "key4":[4,5,6,"${var_to_list}"]
             }
             ,"level2":"This is level 2"
-            
+
         }
         ,"var_to_list":"test"
     }"""
@@ -154,7 +154,7 @@ def test_simple_concat_vars():
     {
         "key1":"test1"
         ,"key2":"test2"
-        ,"key3":"$key1$key2"
+        ,"key3":"${key1}${key2}"
     }"""
     conf = jc.process(json_string=js_string)
     assert conf['key3'] == "test1test2"
@@ -165,10 +165,10 @@ def test_deep_concat_vars():
     {
         "key1":"test1"
         ,"key2":{
-            "level2-1":"this is $key1"
+            "level2-1":"this is ${key1}"
             ,"level2-2":"hey"
-            ,"level2-3":"$key1$key3"
-            ,"level2-4":"$key1$key2.level2-2"
+            ,"level2-3":"${key1}${key3}"
+            ,"level2-4":"${key1}${key2.level2-2}"
         }
         ,"key3":"test2"
     }"""
@@ -183,7 +183,7 @@ def test_list_concat_vars():
     {
         "key1":"test1"
         ,"key2":"test2"
-        ,"key3":["$key1$key2"]
+        ,"key3":["${key1}${key2}"]
     }"""
     conf = jc.process(json_string=js_string)
     assert conf['key3'][0] == "test1test2"
@@ -197,7 +197,7 @@ def test_list_concat_deep_vars():
         ,"key3":{
             "level1":{
                 "level2":{
-                    "level2-list":["$key1$key2"]
+                    "level2-list":["${key1}${key2}"]
                 }
             ,"level1-value":"This is level1"
             }
@@ -205,5 +205,3 @@ def test_list_concat_deep_vars():
     }"""
     conf = jc.process(json_string=js_string)
     assert conf['key3']['level1']['level2']['level2-list'][0] == "test1test2"
-
-
