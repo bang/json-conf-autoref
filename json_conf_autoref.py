@@ -258,8 +258,18 @@ def __replace_vars_list(data,path,element_path,position):
             what = re.sub(r'\$',"\\\$",v)
             to = value
             where = element_path
-            # Replacing variables on array string element
-            cmd = f"data{transformed_path}[{position}] = eval(re.sub(r'{what}',\'{to}\',\"{where}\"))"
+
+            # Replacing variables on complex data structure or on a simple string
+            cmd = ''
+            # If where is complex data
+            if type(where).__name__ != 'str':
+                where_str = re.sub(r'' + what + r'', to, str(where))
+                cmd = f"data{transformed_path}[{position}] = eval(where_str)"
+            # else assume where is a string
+            else:
+                where_str = re.sub(r'' + what + r'', to, where)
+                cmd = f"data{transformed_path}[{position}] = where_str"
+
             exec(cmd)
 
     return data

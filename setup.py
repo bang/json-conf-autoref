@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="json_conf_autoref",
-    version="0.0.8",
+    version="0.0.9",
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
