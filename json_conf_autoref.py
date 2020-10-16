@@ -3,7 +3,7 @@
 
     Version
     -------
-    0.0.8
+    0.0.9
 
     Description
     -----------
@@ -83,7 +83,7 @@ import json
 import sys,os,re
 from exceptions import *
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 
 __author__ = "André Carneiro"
@@ -239,12 +239,11 @@ def __replace_vars_list(data,path,element_path,position):
     # Transforming paths into a valid dictionary path
     transformed_path = ""
     for part in path:
-        transformed_path += "['{}']".format(part)
-    # temp_flag = False
+        transformed_path += f"['{part}']"
 
     # Just place the same value on the array(list) position
     if len(vars_to_replace) == 0:
-        exec("data{}[{}] = element_path".format(str(transformed_path),str(position)))
+        exec(f"data{str(transformed_path)}[{str(position)}] = element_path")
 
     else:
 
@@ -254,14 +253,15 @@ def __replace_vars_list(data,path,element_path,position):
             # the reference names.
             # Don't know if this regex is enough yet. For now, this is it!
             v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
-            #v = re.sub(r'.*?(\$.+?)$','',v)
 
             value = __get_from_path(data,v)
             what = re.sub(r'\$',"\\\$",v)
             to = value
             where = element_path
-            cmd = f"data{transformed_path}[{position}] = re.sub(r'{what}',\'{to}\',\"{where}\")"
+            # Replacing variables on array string element
+            cmd = f"data{transformed_path}[{position}] = eval(re.sub(r'{what}',\'{to}\',\"{where}\"))"
             exec(cmd)
+
     return data
 
 
@@ -293,7 +293,7 @@ def __replace_vars_single(data,path,element_path):
     # Transforming paths into a valid dictionary path
     transformed_path = ""
     for part in path:
-        transformed_path += "['{}']".format(part)
+        transformed_path += f"['{part}']"
 
     # Getting values for replacing
     for v in vars_to_replace:
@@ -433,7 +433,6 @@ def __analyze(data):
                 data = __replace_vars_factory(data,path,element_path,'list')
             else:
                 data = __replace_vars_factory(data,path,element_path,'single')
-
     return data
 
 
