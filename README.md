@@ -5,7 +5,7 @@ Manipulate JSON config files with internal variables
 
 ## VERSION
 
-0.0.7-rc1
+0.0.9
 
 
 
