@@ -5,7 +5,7 @@ JSON extension for configuration files.
 
 ## Version
 
-0.1.0
+0.1.1
 
 
 
@@ -483,3 +483,4 @@ https://github.com/bang/json-conf-autoref/issues
 
 André Garcia Carneiro - andregarciacarneiro@gmail.com
 
+HL9xyn2TlOpyJCKce4iK
