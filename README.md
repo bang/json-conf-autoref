@@ -1,11 +1,11 @@
 # json_conf_autoref
-Manipulate JSON config files with internal variables
+JSON extension for configuration files.
 
 
 
-## VERSION
+## Version
 
-0.0.9
+0.1.0
 
 
 
@@ -48,9 +48,11 @@ This module takes advantage from JSON that have a data strucutre similar to Pyth
 
 ## Requirements
 
-Python3.6 or superior
+Python, version 3.6 or later
 
 pip
+
+pytest
 
 
 
@@ -88,6 +90,15 @@ or
 `python -mpip install json_config_autoref --user`
 
 
+
+
+
+## Features
+
+
+
+* JSON key reference in any place of the structured;
+* Supports environment variables with **restrictions**(See 'Limitations' topic);
 
 
 
@@ -278,7 +289,7 @@ As you can see, "dot-path-example" has exactly value as "hdfs-paths.incoming" ke
 
 
 
-### Variables inside JSON arrays(experimental) 
+### Variables inside JSON arrays
 
 Simple array example:
 
@@ -356,7 +367,53 @@ Result:
 }
 ```
 
-Again, you can't use reference to point to a substructure(a list), just to simple values.
+Again, you can't use reference to point to a substructure(a list), only to simple values.
+
+
+
+### Environment variables(Please, see the restrictions below)
+
+Ex:
+
+```JSON
+{
+    "project-name":"fantastic-project"
+    ,"hdfs-user":"john"
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
+    ,"hdfs-paths":{
+        "incoming":"${hdfs-base}/incoming"
+        ,"processing":"${hdfs-base}/processing"
+        ,"processed":"${hdfs-base}/processed"
+        ,"rejected":"${hdfs-base}/rejected"
+    },
+    "test_env":"$ENV{SHELL} ---- $ENV{PATH}"
+    
+}
+```
+
+Results:
+
+```JSON
+{
+    "hdfs-base": "/usr/john/fantastic-project",
+    "hdfs-paths": {
+        "incoming": "/usr/john/fantastic-project/incoming",
+        "processed": "/usr/john/fantastic-project/processed",
+        "processing": "/usr/john/fantastic-project/processing",
+        "rejected": "/usr/john/fantastic-project/rejected"
+    },
+    "hdfs-user": "john",
+    "project-name": "fantastic-project",
+    "test_env": "/usr/bin/zsh ---- /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+}
+```
+
+#### Restrictions
+
+* Doesn't work on lists;
+* Doesn't work on 'dot-paths'
+
+
 
 
 
@@ -381,7 +438,7 @@ Consider the our old and good 'default.json' file
 
 
 
-The `process` function returns alays a `dict` object. So, just use the keys on dictionary!
+The `process` function returns always a `dict` object. So, only use the keys on dictionary!
 
 ```Python
 # Using common dictionary acess 
@@ -390,39 +447,29 @@ hdfs_user = conf['hdfs-paths']['incoming'] # takes '/usr/john/fantastic-project/
 
 
 
+
+
 ## Limitations
 
 
 
-### Setting values on JSON
+* **References to list index is not supported**: Reference being something like `${some-list.3}` - to try to access position 3, considering that it's a single value;
 
-Not supported 
+  
 
+* **References to complex data structured is not supported**: Reference to a hash or list is not supported(and never will);
 
-
-### Accessing list position values for references
-
-Ex: Reference beeing something like `${some-list.3}` - to try to access position 3, considering that it's a single value.
-
-Not supported yet
+* **Environment variables restrictions**: Not supported inside lists or 'dot-paths' yet;
 
 
 
-### Environment variables
-
-Not supported yet
 
 
 
 ## Notes for this version
 
-* Change in the way to refer to a variable. Before was just `$variabel`. Now is `${variable}`. 
-
-  And that is replicated to 'dot-paths' and variables inside lists(arrays).
-
-* List variables(arrays) access is better, but is still EXPERIMENTAL
-
-* List access bugs fixed
+* New support for environment variables
+* New unit tests
 
 
 

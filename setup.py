@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="json_conf_autoref",
-    version="0.0.9",
+    version="0.1.0",
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
@@ -11,7 +11,7 @@ setup(
     author="Andre Carneiro",
     author_email="andregarciacarneiro@gmail.com",
     description="JSON config parser with variable reference's handler",
-		long_description="JSON config parser with variable reference's handler",
+    long_description="JSON config parser with variable reference's handler",
     keywords="config json variable reference",
     url="https://github.com/bang/json-conf-autoref",   # project home page, if any
     project_urls={

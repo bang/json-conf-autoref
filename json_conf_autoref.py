@@ -80,7 +80,9 @@
 
 """
 import json
-import sys,os,re
+import sys
+import os
+import re
 from exceptions import *
 
 __version__ = '0.0.9'
@@ -125,7 +127,7 @@ def __traverse_json(json_input,path):
     if isinstance(json_input, dict):
         for k, v in json_input.items():
             # Divides the structure keys with '/'. Familiar, huh?
-            if isinstance(v,str) and re.search(r'^.*?(\${.+?}).*?$',v):
+            if isinstance(v,str) and re.search(r'^.*?(\$(ENV|){.+?}).*?$',v):
                 yield { '/'.join([path , k]) : v }
             else:
                 # yields a new recursive call for __traverse passing
@@ -239,11 +241,12 @@ def __replace_vars_list(data,path,element_path,position):
     # Transforming paths into a valid dictionary path
     transformed_path = ""
     for part in path:
-        transformed_path += f"['{part}']"
+        transformed_path += "['{}']".format(part)
+    # temp_flag = False
 
     # Just place the same value on the array(list) position
     if len(vars_to_replace) == 0:
-        exec(f"data{str(transformed_path)}[{str(position)}] = element_path")
+        exec("data{}[{}] = element_path".format(str(transformed_path),str(position)))
 
     else:
 
@@ -253,25 +256,32 @@ def __replace_vars_list(data,path,element_path,position):
             # the reference names.
             # Don't know if this regex is enough yet. For now, this is it!
             v = re.sub(r'[\:\,\ \@\#\*\&\%\/].*?$','',str(v))
+            #v = re.sub(r'.*?(\$.+?)$','',v)
 
             value = __get_from_path(data,v)
             what = re.sub(r'\$',"\\\$",v)
             to = value
             where = element_path
-
-            # Replacing variables on complex data structure or on a simple string
+            print(f"\nV: {v}")
+            print(f"WHAT: {what}")
+            print(f"TO: {to}")
+            print(f"WHERE: {where}")
+            print(f"POSITION: {position}")
+            print(f"DATA: {data}")
+            print(f"TRANSFORMED_PATH: {transformed_path}")
+            regex_result = re.sub(r"" + what + r"", str(to), str(where))
+            print(f"REGEX_RESULT: >>>{regex_result}<<<")
             cmd = ''
-            # If where is complex data
-            if type(where).__name__ != 'str':
-                where_str = re.sub(r'' + what + r'', to, str(where))
-                cmd = f"data{transformed_path}[{position}] = eval(where_str)"
-            # else assume where is a string
+            if not re.search(r'[\(\{\:]+', regex_result) or re.search(r'\$', regex_result):
+                print("::: IF")
+                cmd = f"data{transformed_path}[{position}] = '{regex_result}'"
             else:
-                where_str = re.sub(r'' + what + r'', to, where)
-                cmd = f"data{transformed_path}[{position}] = where_str"
+                print("::: ELSE")
+                cmd = f"data{transformed_path}[{position}] = {regex_result}"
 
+            #cmd = f"data{transformed_path}[{position}] = '{regex_result}'"
+            print(f"CMD:::: {cmd}")
             exec(cmd)
-
     return data
 
 
@@ -293,8 +303,6 @@ def __replace_vars_single(data,path,element_path):
         Returns
         -------
         A dictionary with the processing result
-
-
 
     """
     # Separating variables from the rest of the path
@@ -323,10 +331,10 @@ def __replace_vars_single(data,path,element_path):
                 # Preparing var
                 prepared_part = re.sub(r'^\${','',part)
                 prepared_part = re.sub(r'}$','',prepared_part)
-                var_path += "['{}']".format(prepared_part)
+                var_path += f"['{prepared_part}']"
 
             # Getting value for 'doted' variables
-            value = eval("data{}".format(var_path))
+            value = eval(f"data{var_path}")
 
         # For variables that is defined on root of config content
         else:
@@ -337,16 +345,32 @@ def __replace_vars_single(data,path,element_path):
 
         # Preparing 'v' for regex
         v = re.sub(r'\$', '\\\$',v)
-
         # Storing regex replacement result
-        replacement = eval("re.sub(r''+ v, value, element_path)")
-
+        #replacement = eval("re.sub(r''+ v, value, element_path)")
+        replacement = re.sub(r''+ v, value, element_path)
         # updating element_path with regex replacement result
         element_path = replacement
-
         # Finally replacing values in data
-        exec("data{} = replacement".format(transformed_path))
+        exec(f"data{transformed_path} = replacement")
 
+    # EXPERIMENTAL
+    # Replacing environment var. if it exists. If not, raise error?
+    envs = re.findall(r'(\$ENV\{(.+?)})', element_path)
+    for env in envs:
+        # The target string that will be submited to regex
+        target = env[0]
+        # Name of the environment variable
+        env_name = env[1]
+        # Value(If exists) of the environment variable
+        replacement = os.environ[env_name]
+        # Preparing target to regex
+        target = re.sub(r'\$','\\\$', target)
+        # Applying regex
+        regex_result = re.sub( r'' + target + r'', replacement, element_path )
+        # Updating element_path
+        element_path = regex_result
+        # Placing the result back to the data
+        exec(f"data{transformed_path} = regex_result")
 
     return data
 
@@ -443,6 +467,7 @@ def __analyze(data):
                 data = __replace_vars_factory(data,path,element_path,'list')
             else:
                 data = __replace_vars_factory(data,path,element_path,'single')
+
     return data
 
 
