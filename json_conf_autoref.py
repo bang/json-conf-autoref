@@ -3,7 +3,7 @@
 
     Version
     -------
-    0.0.9
+    0.1.2
 
     Description
     -----------
@@ -85,7 +85,7 @@ import os
 import re
 from exceptions import *
 
-__version__ = '0.0.9'
+__version__ = '0.1.2'
 
 
 __author__ = "André Carneiro"
@@ -262,25 +262,13 @@ def __replace_vars_list(data,path,element_path,position):
             what = re.sub(r'\$',"\\\$",v)
             to = value
             where = element_path
-            print(f"\nV: {v}")
-            print(f"WHAT: {what}")
-            print(f"TO: {to}")
-            print(f"WHERE: {where}")
-            print(f"POSITION: {position}")
-            print(f"DATA: {data}")
-            print(f"TRANSFORMED_PATH: {transformed_path}")
             regex_result = re.sub(r"" + what + r"", str(to), str(where))
-            print(f"REGEX_RESULT: >>>{regex_result}<<<")
             cmd = ''
             if not re.search(r'[\(\{\:]+', regex_result) or re.search(r'\$', regex_result):
-                print("::: IF")
                 cmd = f"data{transformed_path}[{position}] = '{regex_result}'"
             else:
-                print("::: ELSE")
                 cmd = f"data{transformed_path}[{position}] = {regex_result}"
 
-            #cmd = f"data{transformed_path}[{position}] = '{regex_result}'"
-            print(f"CMD:::: {cmd}")
             exec(cmd)
     return data
 

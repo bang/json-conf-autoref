@@ -9,7 +9,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="json_conf_autoref",
-    version="0.1.1",
+    version="0.1.2",
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
@@ -20,6 +20,7 @@ setup(
     author_email="andregarciacarneiro@gmail.com",
     description="JSON config parser with variable reference's handler",
     long_description=long_description,
+    long_description_content_type='text/markdown',
     keywords="config json variable reference",
     url="https://github.com/bang/json-conf-autoref",   # project home page, if any
     project_urls={
