@@ -5,13 +5,13 @@ JSON extension for configuration files.
 
 ## Version
 
-0.1.2
+0.1.3
 
 
 
 ## Intro
 
-This module takes advantage from JSON that have a data strucutre similar to Python as a usual json file except that is allowed to create **variables** and refer to this variables in any part of the JSON file, following the rules at bellow:
+This module takes advantage from JSON that have a data strucutre similar to Python as a usual json file except that is allowed to create **variables** and refer to this variables in any part of the JSON file, following the rules at below:
 
 * Variables reference example: `"${name_of_some_variable}"`;
 
@@ -106,7 +106,7 @@ or
 
 
 
-#### Create a JSON file. I called this one at bellow 'default.json':
+#### Create a JSON file. I called this one at below 'default.json':
 
 ```json
 {
@@ -249,7 +249,7 @@ Considering the same config file
 
 How to refer to 'incoming' key ? You can acess multiple levels of the structure using dots for each deep level you want to reach.
 
-Example: Consider a JSON structure at bellow. Now, suppose to use a variable called "dot-path-example" that is on first level of this structure and value to reach is 'incoming', at bellow of 'hdfs-paths'. This is possible to access using dots like this: `"${hdfs-paths.incoming}"`
+Example: Consider a JSON structure at below. Now, suppose to use a variable called "dot-path-example" that is on first level of this structure and value to reach is 'incoming', at below of 'hdfs-paths'. This is possible to access using dots like this: `"${hdfs-paths.incoming}"`
 
 ```json
 {

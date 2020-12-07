@@ -3,7 +3,7 @@
 
     Version
     -------
-    0.1.2
+    0.1.3
 
     Description
     -----------
@@ -85,7 +85,7 @@ import os
 import re
 from exceptions import *
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 
 __author__ = "André Carneiro"
