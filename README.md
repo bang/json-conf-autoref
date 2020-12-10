@@ -483,4 +483,3 @@ https://github.com/bang/json-conf-autoref/issues
 
 André Garcia Carneiro - andregarciacarneiro@gmail.com
 
-HL9xyn2TlOpyJCKce4iK
