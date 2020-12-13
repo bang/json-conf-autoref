@@ -259,7 +259,7 @@ def __replace_vars_list(data,path,element_path,position):
             #v = re.sub(r'.*?(\$.+?)$','',v)
 
             value = __get_from_path(data,v)
-            what = re.sub(r'\$',"\\\$",v)
+            what = re.sub(r'\$',"\\$",v)
             to = value
             where = element_path
             regex_result = re.sub(r"" + what + r"", str(to), str(where))
@@ -332,7 +332,7 @@ def __replace_vars_single(data,path,element_path):
             value = data[key]
 
         # Preparing 'v' for regex
-        v = re.sub(r'\$', '\\\$',v)
+        v = re.sub(r'\$', '\\$',v)
         # Storing regex replacement result
         #replacement = eval("re.sub(r''+ v, value, element_path)")
         replacement = re.sub(r''+ v, value, element_path)
@@ -352,7 +352,7 @@ def __replace_vars_single(data,path,element_path):
         # Value(If exists) of the environment variable
         replacement = os.environ[env_name]
         # Preparing target to regex
-        target = re.sub(r'\$','\\\$', target)
+        target = re.sub(r'\$','\\$', target)
         # Applying regex
         regex_result = re.sub( r'' + target + r'', replacement, element_path )
         # Updating element_path
@@ -429,8 +429,6 @@ def __analyze(data):
         -------
         A dictionary with the processing results
 
-
-
     """
     lookups = []
     for _ in __traverse_json(data,''):
@@ -478,6 +476,61 @@ def show(data):
     print(str(json.dumps(data,indent=4,sort_keys=True)))
 
 
+def __remove_comments_single(line):
+    """Removes the comments from a single line string.
+
+    """
+    # If a '#' character is between a valid JSON string, it will be ignored. Otherwise,
+    # all characters after '#' character will be removed from the string
+    if (re.search(r'^.*?#.+?$', line) and \
+    not re.search(r'("|\').*?#.*?("|\')', line)) or \
+    re.search(r'^[^\'"]*#', line):
+        line = re.sub(r'^(.*?)#.+?$', r'\1', line)
+
+    return line
+
+def __remove_comments_multilines(lines):
+    """Break the multiline string into a single line string and applies their
+    __remove_comments function.
+
+    """
+    more_lines = re.split(r'(\r\n|\n\r|\n|\r)', lines)
+    removed = []
+    for line in more_lines:
+        line = __remove_comments_single(line)
+        removed.append(line)
+    result = lines
+
+    if len(removed) > 0:
+        result = "".join(removed)
+    return result
+
+
+def __remove_comments(lines):
+    """Removes the comment using '#' character as reference, considering the possibility
+    to have the '#' inside an valid string on JSON structure. Returns a string
+    without comments.
+
+        Parameters
+        ----------
+
+        lines (str): line string to remove comments.
+
+
+        Returns
+        -------
+
+        A string without comments
+
+    """
+    if re.search(r'(\n|\r|\r\n|\n\r)', lines):
+        line = __remove_comments_multilines(lines)
+
+    else:
+        line = __remove_comments_single(lines)
+
+    return line
+
 def process(json_string=None,file=None):
     """Reads the JSON from file or string. Then, iterates the processing
         using __analyze and __check_results internal functions to evaluate if
@@ -512,20 +565,33 @@ def process(json_string=None,file=None):
             When 'json_string' and 'file' params are not set
 
     """
-
-
     data = None
 
     # Checking parameters
     if not json_string and not file:
         raise InvalidParam("No input data! You must define 'json_string' or 'file' parameter")
 
-    if file:
+    # The file parameter has precedence over json_string parameter
+    if file is not None:
         data = {}
-        with open(file) as f:
+        tmp_file = f"{file}.tmp"
+        # Removing comments from file
+        with open(file) as f, open(tmp_file, 'w') as f2:
+            for line in f:
+                line = __remove_comments(line)
+                f2.write(line)
+        f2.close()
+
+        #Loading JSON from new file
+        with open(tmp_file) as f:
             data = json.load(f)
+
     else:
         try:
+            # Removing comments
+            json_string = __remove_comments(json_string)
+
+            # Loading JSON
             data = json.loads(json_string)
         except ValueError as e:
             print("JSON error! {}".format(str(e)))

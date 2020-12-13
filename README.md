@@ -131,8 +131,8 @@ or
 
 ```json
 {
-    "project-name":"fantastic-project"
-    ,"hdfs-user":"john"
+    "project-name":"fantastic-project",
+    ,"hdfs-user":"john",
     ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
   
 }
@@ -147,6 +147,14 @@ import json_conf_autoref as jca
 
 # Loading from file
 conf = jca.process(file='default.json')
+
+# Alternatively, you can load from a string
+jstr = """{
+    "project-name":"fantastic-project",
+    ,"hdfs-user":"john",
+    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
+ }"""
+conf = jca.process(json_string=)
 
 # Showing config with all references replaced
 jca.show(conf)
@@ -235,7 +243,7 @@ Result
 }
 ```
 
-This crashes because '${paths}' is refering to a complex/nested structure. It's not allowed( See more of it in [Description](#Description) session)
+This crashes because '${paths}' is not between quotes and even was the case(between quotes), ${paths} is refering to a complex data and this is not allowed.
 
 
 
@@ -428,6 +436,27 @@ Results:
 
 
 
+### Comments
+
+* is allowed using the chacacter '#';
+
+* comment must not interfere on the references nor compromise the JSON document structure. 
+
+Examples when comments are allowed:
+
+```bash
+{ #comment1
+    "project-name":"fantastic-project",
+#comment2    "test-ref":"#should-not-be-interpret-as-comment${project-name}",
+    #comment3
+    "another-var":"hey", #comment4
+    "test-array":[1,2,3,4,"${project-name}",5,6,"${another-var}"],
+    "inside-a-string":"#this is not considered as a comment!"
+    #comment5
+} #comment6
+
+```
+
 
 
 ### Accessing data
@@ -467,22 +496,27 @@ hdfs_user = conf['hdfs-paths']['incoming'] # takes '/usr/john/fantastic-project/
 
 
 * **Reference to list/array index is not supported**: Something like `${some-list.3}` - intending to access position 3, considering that it's a single value is not possible;
-
-  
-
 * **Reference to complex data structured is not supported**: Reference to a hash or list is not supported(and never will);
-
 * **Environment variables restrictions**: Not supported inside lists or 'dot-paths' yet;
 
 
 
+## Change log
+
+### 0.1.5
+
+* Support for comments;
+* Documentation fix;
+* Starting a change log;
+* Starting producing releases branches
+* 90% test covered
 
 
 
-## Notes for this version
+### 0.1.3
 
-* New support for environment variables
-* New unit tests
+* New support for environment variables;
+* New unit tests.
 
 
 
