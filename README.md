@@ -529,3 +529,7 @@ https://github.com/bang/json-conf-autoref/issues
 ## Author
 
 André Garcia Carneiro - andregarciacarneiro@gmail.com
+<<<<<<< HEAD
+=======
+
+>>>>>>> 89e671f41e9e0788c64b0c3807fb0d0549e31af9
