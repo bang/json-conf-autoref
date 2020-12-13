@@ -3,27 +3,31 @@ JSON extension for configuration files.
 
 
 
+<a name="Version" />
+
 ## Version
 
-0.1.3
+0.1.5
 
 
 
-## Intro
+<a name="Description" />
 
-This module takes advantage from JSON that have a data strucutre similar to Python as a usual json file except that is allowed to create **variables** and refer to this variables in any part of the JSON file, following the rules at below:
+## Description
+
+This module takes advantage from JSON that have a data strucutre similar to Python as a usual JSON file except that is allowed to create **variables** and refer to this variables in any part of the JSON file, following the rules at below:
 
 * Variables reference example: `"${name_of_some_variable}"`;
 
 * Variables **must** be referenced inside a string;
 
-* Variable is **always** a reference to a **simple value**! **Never** neasted structures or lists!;
+* Variable is **always** a reference to a **simple value**! **Never** an complex/neasted structures or lists!;
 
 * You can concatenate variables
 
   Ex.: `"some_external_value${variable1}${variable2}"`;
   
-* Variables inside arrays is EXPERIMENTAL
+* Variables inside arrays is **experimental**
 
   ```json
   "my_array":[1,2,"${some_variable}","abc",3.2]
@@ -44,7 +48,22 @@ This module takes advantage from JSON that have a data strucutre similar to Pyth
 
 * You **can't** use variables on keys
 
+  ```json
+  {
+     "var": "Hey!",
+     "${var}": "something else"
+  }
+  ```
 
+  This will crash!
+
+
+
+See more examples in the session [How to use](#How-to-use)
+
+
+
+<a name="Requirements" />
 
 ## Requirements
 
@@ -55,6 +74,8 @@ pip
 pytest
 
 
+
+<a name="Installing" />
 
 ## Installing
 
@@ -91,18 +112,18 @@ or
 
 
 
-
+<a name="Features" />
 
 ## Features
-
-
 
 * JSON key reference in any place of the structured;
 * Supports environment variables with **restrictions**(See 'Limitations' topic);
 
 
 
-## HOW TO USE
+<a name="How-to-use" />
+
+## How to use
 
 
 
@@ -146,9 +167,7 @@ Result:
 
 What happened?
 
-For the 'hdfs-base' value, the reference `$hdfs-user`(is a reference for the key 'hdfs-user') was replaced by 'john'(value of the key 'hdfs-user'. Simple like that! If you have a key and a simple value, you can refere in another place only using the char '$' + *name of the key* that have the value you want. Of course, if you refere to a variable that not exists a exception will be trhown.
-
-
+For the 'hdfs-base' value, the reference `${hdfs-user}`(is a reference for the key 'hdfs-user') was replaced by 'john'(value of the key 'hdfs-user'. Simple like that! If you have a key and a simple value, you can refere in another place only using the char '$' + *{name of the key between brakets}* that have the value you want. Of course, if you refere to a variable that not exists a exception will be trhown.
 
 Now, let's complicate the *default.json* file a little bit, using reference to another reference using `$hdfs-base` referencing another reference.
 
@@ -169,9 +188,7 @@ Now, let's complicate the *default.json* file a little bit, using reference to a
 
 
 
-You can use another references mixing in simple values. In this case, the key "incoming", for example, has on config file the reference `$hdfs-base` whose the original value has two another reference(`$hdfs-user` and `$project-name`). 
-
-
+You can use another references mixing in simple values. In this case, the key "incoming", for example, has on config file the reference `${hdfs-base}` whose the original value has two another reference(`${hdfs-user}` and `${project-name}`). 
 
 Now, loading the data from file with the same code as the example before
 
@@ -218,11 +235,7 @@ Result
 }
 ```
 
-This crashes because breaks the rules defined on *Intro* section
-
-Since the reference `$paths` doesn't points to a simple value but to an sub-structure, this can't be used as a reference. So, crashes!
-
-
+This crashes because '${paths}' is refering to a complex/nested structure. It's not allowed( See more of it in [Description](#Description) session)
 
 
 
@@ -453,11 +466,11 @@ hdfs_user = conf['hdfs-paths']['incoming'] # takes '/usr/john/fantastic-project/
 
 
 
-* **References to list index is not supported**: Reference being something like `${some-list.3}` - to try to access position 3, considering that it's a single value;
+* **Reference to list/array index is not supported**: Something like `${some-list.3}` - intending to access position 3, considering that it's a single value is not possible;
 
   
 
-* **References to complex data structured is not supported**: Reference to a hash or list is not supported(and never will);
+* **Reference to complex data structured is not supported**: Reference to a hash or list is not supported(and never will);
 
 * **Environment variables restrictions**: Not supported inside lists or 'dot-paths' yet;
 
@@ -482,5 +495,3 @@ https://github.com/bang/json-conf-autoref/issues
 ## Author
 
 André Garcia Carneiro - andregarciacarneiro@gmail.com
-
-HL9xyn2TlOpyJCKce4iK

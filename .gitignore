@@ -9,3 +9,4 @@ eggs/
 test.*
 config.json
 venv/
+docs/
