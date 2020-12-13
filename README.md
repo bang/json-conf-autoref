@@ -132,8 +132,8 @@ or
 ```json
 {
     "project-name":"fantastic-project",
-    ,"hdfs-user":"john",
-    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
+    "hdfs-user":"john",
+    "hdfs-base":"/usr/${hdfs-user}/${project-name}"
   
 }
 ```
@@ -151,8 +151,8 @@ conf = jca.process(file='default.json')
 # Alternatively, you can load from a string
 jstr = """{
     "project-name":"fantastic-project",
-    ,"hdfs-user":"john",
-    ,"hdfs-base":"/usr/${hdfs-user}/${project-name}"
+    "hdfs-user":"john",
+    "hdfs-base":"/usr/${hdfs-user}/${project-name}"
  }"""
 conf = jca.process(json_string=)
 
@@ -529,7 +529,3 @@ https://github.com/bang/json-conf-autoref/issues
 ## Author
 
 André Garcia Carneiro - andregarciacarneiro@gmail.com
-<<<<<<< HEAD
-=======
-
->>>>>>> 89e671f41e9e0788c64b0c3807fb0d0549e31af9
